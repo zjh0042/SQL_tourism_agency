@@ -1,0 +1,347 @@
+DROP TABLE IF EXISTS attractions CASCADE;
+DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS nearby_accommodations CASCADE;
+DROP TABLE IF EXISTS booking_itineraries CASCADE;
+DROP TABLE IF EXISTS customer_info CASCADE;
+DROP TABLE IF EXISTS combo_bookings CASCADE;
+DROP TABLE IF EXISTS airline_info CASCADE;
+DROP TABLE IF EXISTS combos CASCADE;
+
+DROP INDEX IF EXISTS fx_events_attraction_id;
+DROP INDEX IF EXISTS fx_nearby_accommodations_attraction_id;
+DROP INDEX IF EXISTS fx_combo_bookings_customer;
+DROP INDEX IF EXISTS fx_combos_airline;
+DROP INDEX IF EXISTS fx_combo_bookings_combos;
+DROP INDEX IF EXISTS fx_booking_itineraries_attraction_id;
+DROP INDEX IF EXISTS fx_booking_itineraries_accommodations;
+DROP INDEX IF EXISTS fx_combo_bookings_booking_itineraries;
+
+CREATE TABLE attractions (
+	attraction_id smallint GENERATED ALWAYS AS IDENTITY,
+	attraction_name varchar(50),
+	address varchar(100),
+	type varchar(50),
+	overview text,
+	opening_time time,
+	closed_time time,
+	admission_fee numeric(4,2),
+	website_link varchar(100),
+	official_contact varchar(20),
+	average_rating numeric(3,2),
+	CONSTRAINT pk_attractions PRIMARY KEY (attraction_id)
+);
+
+INSERT INTO attractions (attraction_name,address,type,overview,opening_time,closed_time,admission_fee,website_link,official_contact,average_rating)
+VALUES
+		('Isabella Stewart Gardner Museum', 
+		'25 Evans Way, Boston, MA, 02115, USA',  
+		'Art', 
+		'A Venetian palace in the middle of Boston, Gardners home is now a museum displaying her impressive, eclectic collection of European, American and Asian art, including sculpture, paintings, furniture, ceramics and textiles. Visitors can stroll or rest in a spectacular skylit courtyard filled with plants and flowers', 
+		'11:00:00', 
+		'17:00:00', 
+		20.00, 
+		'https://www.gardnermuseum.org/', 
+		'+1 (617) 566-1401', 
+		4.7),
+ 		('The Museum of Fine Arts, Boston',
+	 	'465 Huntington Ave, Boston, MA, 02115, USA',
+	 	'Art',
+	 	'One of the most comprehensive art museums in the world,the Museum of Fine Arts houses an extensive collection of artworkfrom ancient Egyptian artifacts to contemporary paintings and sculptures. Visitors can enjoy a variety of exhibitions and programs, as well as grab a bite to eat at the museums café or restaurant.',
+	 	'10:00:00',
+	 	'17:00:00',
+	 	25.00,
+	 	'https://www.mfa.org/',
+	 	'+1 (617) 267-9300',
+	 	4.6),
+		('New England Aquarium',
+		 '1 Central Wharf, Boston, MA, 02110, USA',
+		 'Aquarium',
+		 'Located on Boston Harbor, the New England Aquarium features thousands of aquatic animals from around the world. Visitors can explore exhibits such as the Giant Ocean Tank, featuring a coral reef teeming with sea life, and the Shark and Ray Touch Tank, where visitors can touch various species of sharks and rays. The aquarium also hosts a variety of educational programs and events for all ages.',
+		 '09:00:00',
+		 '18:00:00',
+		 32.00,
+		 'https://www.neaq.org/',
+		 '+1 (617) 973-5200',
+		 4.5),
+		 ('Boston Common',
+    	 '139 Tremont St, Boston, MA 02111, USA',
+    	 'Park',
+    	 'As the oldest public park in the United States, Boston Common is a historic landmark that has been a gathering place for Bostonians since 1634. Visitors can walk the Freedom Trail, ride the swan boats, and enjoy outdoor activities like picnicking and ice skating.',
+    	 '06:00:00',
+    	 '22:00:00',
+    	 0.00,
+    	 'https://www.boston.gov/parks/boston-common',
+    	 '+1 (617) 635-4505',
+    	 4.6),
+		 ('The USS Constitution Museum', 
+		  'Building 22, Charlestown Navy Yard, Boston, MA 02129', 
+		  'Historical Site', 
+		  'The USS Constitution Museum is dedicated to the history of the USS Constitution, the oldest commissioned warship afloat in the world. The museum features interactive exhibits, historical artifacts, and educational programs.', 
+		  '09:00:00', 
+		  '17:00:00', 
+		  '15.00', 
+		  'https://www.ussconstitutionmuseum.org/', 
+		  '+1 (617) 426-1812', 
+		  '4.5'),
+		 ('Paul Revere House', 
+		  '19 North Square, Boston, MA 02113', 
+		  'Historical Site', 
+		  'The Paul Revere House is the oldest building in downtown Boston and the former home of American revolutionary Paul Revere. Visitors can learn about Revere''s life and see the house and its furnishings as they would have been in the late 1700s.', 
+		  '09:30:00', 
+		  '17:00:00', 
+		  '12.00', 
+		  'https://www.paulreverehouse.org/', 
+		  '+1 (617) 523-2338', 
+		  '4.7');
+
+CREATE TABLE events (
+	event_name varchar(50),
+	attraction_id smallint,
+	address varchar(100),
+	dates date,
+	opening_time time,
+	event_theme text,
+	special_request text, 
+	languages varchar(20),
+	CONSTRAINT pk_events PRIMARY KEY (event_name)
+);
+
+INSERT INTO events (event_name,attraction_id,address,dates,opening_time,event_theme,special_request,languages)
+VALUES 
+ 	('Benedetti-Elschenbroich-Grynyuk Trio', 1, '25 Evans Way, Boston, MA, 02115, USA', '2023-03-26', '13:30:00', 'concert', 'membership required', 'English'),
+ 	('Seafood Festival', 3,'Boston Fish Pier, 212 Northern Avenue, Boston, MA, 02210, USA','2023-08-12','11:00:00','Festival','VIP tickets include a lobster roll','Spanish'),
+	('Marathon', 4, 'Hopkinton, MA, 02315, USA', '2023-07-20', '08:00:00', 'Sports', 'Registration required', 'Multi');
+
+ALTER TABLE events 
+ADD CONSTRAINT fk_events_attractions FOREIGN KEY (attraction_id)
+REFERENCES attractions (attraction_id)
+ON UPDATE CASCADE
+ON DELETE RESTRICT;
+
+CREATE INDEX fx_events_attraction_id ON events(attraction_id);
+
+CREATE TABLE nearby_accommodations (
+	accommodations varchar(50),
+	attraction_id smallint,
+	room_capacity smallint, 
+	eco_certificate boolean NOT NULL,
+	pet_friendly boolean NOT NULL, 
+	address varchar(100),
+	rating numeric(2,1),
+	official_contact varchar(20),
+	special_request text,
+	CONSTRAINT pk_nearby_accommodations PRIMARY KEY (accommodations)
+);
+
+ALTER TABLE nearby_accommodations ALTER COLUMN eco_certificate SET DEFAULT false;
+ALTER TABLE nearby_accommodations ALTER COLUMN pet_friendly SET DEFAULT false;
+
+INSERT INTO nearby_accommodations (accommodations, attraction_id, room_capacity, eco_certificate, pet_friendly, address, rating, official_contact, special_request)
+VALUES 
+	('The Inn At Longwood Medical', 1, 200, true, true, '342 Longwood Ave, Boston, MA, 02115', 4.3, '+1 (617) 566-4500', 'Late check-out available upon request'),
+ 	('Sheraton Boston Hotel', 2, 400, false, true, '39 Dalton St, Boston, MA, 02199', 4.2, '+1 (617) 236-2000', 'Complimentary breakfast for guests'),
+    ('Residence Inn by Marriott Boston Back Bay/Fenway', 3, 300, true, false, '125 Brookline Ave, Boston, MA, 02215', 4.5, '+1 (617) 236-8787', 'Free Wi-Fi'),
+    ('Hilton Boston Back Bay', 4, 500, false, true, '40 Dalton St, Boston, MA, 02115', 4.4, '+1 (617) 236-1100', 'Fitness center and pool available for guests'),
+	('The Westin Copley Place', 5, 300, true, false, '10 Huntington Ave, Boston, MA 02116', 4.7, '+1 (617) 262-9600', 'Complimentary parking for guests'),
+	('Four Seasons Hotel One Dalton Street', 6, 250, true, true, '1 Dalton St, Boston, MA 02115', 4.9, '+1 (617) 377-4888', '24-hour room service available');
+
+ALTER TABLE nearby_accommodations
+ADD CONSTRAINT fk_nearby_accommodations_attractions FOREIGN KEY (attraction_id)
+REFERENCES attractions(attraction_id)
+ON UPDATE CASCADE
+ON DELETE RESTRICT;
+
+CREATE INDEX fx_nearby_accommodations_attraction_id ON nearby_accommodations(attraction_id);
+
+CREATE TABLE customer_info(
+	customer varchar(20),
+	date_birth date,
+	gender varchar(10),
+	email varchar(20),
+	mailing_address varchar(50),
+	nationality varchar(20),
+	location_of_residence varchar(50),
+	occupation varchar(20),
+	education_level varchar(50),
+	marital_status varchar(10),
+	religion varchar(20),
+	languages varchar(20),
+	veteran boolean NOT NULL, 
+	disability boolean NOT NULL,
+	CONSTRAINT pk_customer_info PRIMARY KEY (customer)	
+);
+
+ALTER TABLE customer_info ALTER COLUMN veteran SET DEFAULT false;
+ALTER TABLE customer_info ALTER COLUMN disability SET DEFAULT false;
+
+INSERT INTO customer_info (customer, date_birth, gender, email, mailing_address, nationality, location_of_residence, occupation, education_level, marital_status, religion, languages, veteran, disability)
+VALUES
+	('Jenna Hayes','1998-03-09','Female','Jennahayes@gmail.com', '69 Peach Tree St. Atlanta, GA 30309 USA', 'British', 'Atlanta', 'Bakery Shop Owner', 'Phd student', 'Single', 'Christian', 'English, Spanish', false, false),
+ 	('James Ford', '1996-05-01', 'Male', 'Jamesford@gamil.com', '1224 Beverly Blvd, Los Angeles, CA, 90036, USA', 'American', 'Los Angeles', 'Student', 'Bachelor', 'Single', 'None', 'English', true, false);
+
+CREATE TABLE airline_info (
+	flight_number character(50),
+	departure timestamptz, 
+	arrival timestamptz, 
+	departure_loca varchar(50),
+	arrival_loca varchar(50),
+	CONSTRAINT pk_airline_info PRIMARY KEY (flight_number)
+);
+
+INSERT INTO airline_info (flight_number, departure, arrival, departure_loca, arrival_loca) 
+VALUES
+	('AA237', '2023-03-15 08:30:00', '2023-03-15 11:45:00', 'Los Angeles International Airport', 'Boston International Airport'),
+	('DL283', '2023-03-13 10:00:00', '2023-03-16 12:30:00', 'Hartsfield-Jackson Atlanta International Airport', 'Boston International Airport');
+
+
+CREATE TABLE combos (
+	trip_name varchar(50),
+	flight_number character(50),
+	price numeric(5,2),  
+	CONSTRAINT pk_combos PRIMARY KEY (trip_name)
+);
+
+INSERT INTO combos (trip_name,flight_number, price) 
+VALUES
+    ('Freedom Trail in Boston', 'DL283', 500.00),
+	('Spring Break in Boston', 'AA237', 350.00);
+		
+CREATE TABLE combo_bookings(
+	book_id smallint,
+	trip_name varchar(50),
+	customer varchar(50),
+	consultants varchar(20),
+	add_on varchar(100),
+	CONSTRAINT pk_combo_bookings PRIMARY KEY (book_id) 
+);
+
+INSERT INTO combo_bookings (book_id, trip_name, customer, consultants,add_on)
+VALUES
+	(1, 'Freedom Trail in Boston', 'Jenna Hayes','Consultant Amy','None'),
+	(2, 'Spring Break in Boston', 'James Ford', 'Consultant Tom','None');
+
+ALTER TABLE combo_bookings
+ADD CONSTRAINT fk_combo_bookings_customer_info FOREIGN KEY (customer)
+REFERENCES customer_info (customer)
+ON UPDATE CASCADE
+ON DELETE RESTRICT;
+
+CREATE INDEX fx_combo_bookings_customer ON combo_bookings (customer);
+
+ALTER TABLE combos
+ADD CONSTRAINT fk_combos_airline_info FOREIGN KEY (flight_number)
+REFERENCES airline_info (flight_number)
+ON UPDATE CASCADE
+ON DELETE RESTRICT;
+
+CREATE INDEX fx_combos_airline ON combos (flight_number);
+
+ALTER TABLE combo_bookings
+ADD CONSTRAINT fk_combo_bookings_combos FOREIGN KEY (trip_name)
+REFERENCES combos (trip_name)
+ON UPDATE CASCADE
+ON DELETE RESTRICT;
+
+CREATE INDEX fx_combo_bookings_combos  ON combo_bookings (trip_name);
+
+CREATE TABLE booking_itineraries (
+	book_id smallint,
+	days smallint CHECK (days < 7),
+	attraction_id smallint,
+	accommodations varchar(50),
+	CONSTRAINT pk_booking_itineraries PRIMARY KEY (book_id, days)
+);
+
+INSERT INTO booking_itineraries (book_id, days, attraction_id, accommodations)
+VALUES
+	 (1, 1, 5, 'Residence Inn by Marriott Boston Back Bay/Fenway'),
+	 (1, 2, 3, 'The Westin Copley Place'),
+	 (1, 3, 6, 'Four Seasons Hotel One Dalton Street');
+
+INSERT INTO booking_itineraries (book_id, days, attraction_id, accommodations)
+VALUES
+    (2, 1, 1, 'The Inn At Longwood Medical'),
+    (2, 2, 2, 'Sheraton Boston Hotel');
+
+ALTER TABLE booking_itineraries 
+ADD CONSTRAINT fk_booking_itineraries_attractions FOREIGN KEY (attraction_id)
+REFERENCES attractions(attraction_id)
+ON UPDATE CASCADE
+ON DELETE RESTRICT;
+
+CREATE INDEX fx_booking_itineraries_attraction_id ON booking_itineraries (attraction_id);
+
+ALTER TABLE booking_itineraries
+ADD CONSTRAINT fk_booking_itineraries_accommodations FOREIGN KEY (accommodations)
+REFERENCES nearby_accommodations (accommodations)
+ON UPDATE CASCADE
+ON DELETE RESTRICT;
+
+CREATE INDEX fx_booking_itineraries_accommodations ON booking_itineraries(accommodations);
+
+ALTER TABLE booking_itineraries
+ADD CONSTRAINT fk_combo_bookings_booking_itineraries FOREIGN KEY (book_id)
+REFERENCES combo_bookings (book_id)
+ON UPDATE CASCADE
+ON DELETE RESTRICT;
+
+CREATE INDEX fx_combo_bookings_booking_itineraries ON booking_itineraries (book_id);
+
+---Insert the geo data
+
+ALTER TABLE attractions ADD COLUMN longitude numeric;
+ALTER TABLE attractions ADD COLUMN latitude numeric;
+UPDATE attractions SET longitude = -71.0992, latitude = 42.3384 WHERE attraction_id = 1;
+UPDATE attractions SET longitude = -71.0954, latitude = 42.3394 WHERE attraction_id = 2;
+UPDATE attractions SET longitude = -71.0504, latitude = 42.3554 WHERE attraction_id = 3;
+UPDATE attractions SET longitude = -71.0654, latitude = 42.3549 WHERE attraction_id = 4;
+UPDATE attractions SET longitude = -71.0550, latitude = 42.3739 WHERE attraction_id = 5;
+UPDATE attractions SET longitude = -71.0536, latitude = 42.3637 WHERE attraction_id = 6;
+
+
+ALTER TABLE nearby_accommodations ADD COLUMN longitude numeric;
+ALTER TABLE nearby_accommodations ADD COLUMN latitude numeric;
+UPDATE nearby_accommodations SET longitude = -71.1066, latitude = 42.3383 WHERE accommodations = 'The Inn At Longwood Medical';
+UPDATE nearby_accommodations SET longitude = -71.0842, latitude = 42.3464 WHERE accommodations = 'Sheraton Boston Hotel';
+UPDATE nearby_accommodations SET longitude = -71.1005, latitude = 42.3458 WHERE accommodations = 'Residence Inn by Marriott Boston Back Bay/Fenway';
+UPDATE nearby_accommodations SET longitude = -71.3371, latitude = 42.5933 WHERE accommodations = 'Hilton Boston Back Bay';
+UPDATE nearby_accommodations SET longitude = -71.0762, latitude = 42.3508 WHERE accommodations = 'The Westin Copley Place';
+UPDATE nearby_accommodations SET longitude = -71.0841, latitude = 42.3456 WHERE accommodations = 'Four Seasons Hotel One Dalton Street';
+
+SELECT attractions.attraction_name, attractions.latitude, attractions.longitude AS attraction_location, nearby_accommodations.accommodations, nearby_accommodations.latitude, nearby_accommodations.longitude AS accommodations_location
+FROM booking_itineraries
+INNER JOIN attractions ON attractions.attraction_id = booking_itineraries.attraction_id
+INNER JOIN nearby_accommodations ON nearby_accommodations.accommodations = booking_itineraries.accommodations
+WHERE booking_itineraries.book_id = 1 AND booking_itineraries.days = 1;
+
+----Then I get the longitude and latitude that I want, I can plot the map. 
+
+SELECT id FROM project.ma_edges_vertices_pgr ORDER BY ST_Point(-71.12085,42.4085371,4326) <-> geom LIMIT 1;
+
+SELECT id FROM project.ma_edges_vertices_pgr ORDER BY ST_Point(-71.11729,42.4021771,4326) <-> geom LIMIT 1;
+
+SELECT
+	r.seq,
+	r.node,
+	w.osm_name AS street,
+	r.cost::numeric(10,4),
+	(SUM(ST_Length(w.geom_way::geography)) OVER (ORDER BY r.seq))::numeric(10,2) AS dist_m,
+	ST_Collect(w.geom_way, n.geom) AS geom,
+	r.agg_cost
+FROM
+	pgr_dijkstra (
+		$sql$
+			SELECT id, source, target, cost, reverse_cost
+			FROM project.ma_edges
+			WHERE
+				geom_way &&
+				ST_Expand(
+					ST_GeomFromText('LINESTRING(-71.14 42.40,-71.10 42.41)',4326),
+					100
+				)
+        $sql$,
+		(SELECT id FROM project.ma_edges_vertices_pgr ORDER BY geom <-> ST_Point(-71.0550, 42.3739,4326) LIMIT 1),
+		(SELECT id FROM project.ma_edges_vertices_pgr ORDER BY geom <-> ST_Point(-71.1005, 42.3458,4326) LIMIT 1),
+		TRUE
+	) AS r INNER JOIN project.ma_edges_vertices_pgr AS n ON r.node = n.id LEFT JOIN project.ma_edges AS w ON r.edge = w.id
+;
